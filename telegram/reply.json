@@ -1,0 +1,14 @@
+{
+    "acceptrules": "[✔] Thank you for accepting the rules, now you can send *ONE* picture to send on channel.",
+    "rules": "Hello!\nYou need to accept the rules first to send your art\nYou can send only one picture in one message\nYou have to provide an artist name.\nIt has to be your art",
+    "contact": "Bot by Stripe & Roki_100",
+    "declineReply": "[❗] You need to accept the rules to send arts!",
+    "declineReplyart": "[❌] Odrzuciłeś obrazek",
+    "declinedMessage": "Your art was declined",
+    "uzupelnijartyste": "Please, provide an artist name!",
+    "wyslano": "Your art has been submitted, please wait for it to be reviewed!",
+    "acceptwyslanie": "Your art has been accepted.",
+    "zaakceptowales": "[✔] Zaakceptowałeś obrazek",
+    "sendArtist": "You can send artist name now.",
+    "mainmessage": ""
+}

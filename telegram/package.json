@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "audit": "^0.0.6",
+    "colors": "^1.4.0",
+    "git": "^0.1.5",
+    "node-telegram-bot-api": "^0.52.0",
+    "telegram-bot-api": "^2.0.1"
+  }
+}
