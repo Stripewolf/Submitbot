@@ -5,11 +5,11 @@
     "declineReply": "[❗] You need to accept the rules to send arts!",
     "declineReplyart": "[❌] Odrzuciłeś obrazek",
     "declinedMessage": "Your art was declined",
-    "uzupelnijartyste": "Please, provide an artist name!",
-    "wyslano": "Your art has been submitted, please wait for it to be reviewed!",
+    "provideartist": "Please, provide an artist name!",
+    "sent": "Your art has been submitted, please wait for it to be reviewed!",
     "acceptwyslanie": "Your art has been accepted.",
     "zaakceptowales": "[✔] Zaakceptowałeś obrazek",
     "sendArtist": "You can send artist name now.",
-    "mainmessage": "",
+    "mainmessage": "Hey {name}",
     "botstart": "Bot downloaded cookies"
 }

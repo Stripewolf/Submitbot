@@ -11,45 +11,50 @@ log.log(replybot.botstart);
 
 bot.on("polling_error", console.log);
 
+function welcomemsg(chatId, username) {
+    bot.sendMessage(chatId, replybot.mainmessage.replace("{name}", username), {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [
+                    {
+                        text:"Submit art",
+                        callback_data: 'sumbit'
+                    },
+                    {
+                        text: "Contact",
+                        callback_data: 'contact'
+                    }
+                ],
+            ],
+        }),
+    }
+);
+}
 bot.on('message', (msg) => {
     /*console.log(msg.photo[msg.photo.length-1]);
     //console.log(msg)
     bot.copyMessage(msg.chat.id, msg.chat.id, msg.message_id)
     return;*/
-
     let start = "/help";
     let start2 = "/start";
     if(!msg.text) return;
-    if(msg.text.toString().startsWith('/unban') && msg.chat.id == 431324710) { try { fs.unlinkSync(`./banned/${msg.text.toString().split(' ')[1]}.txt`) } catch(e) {} };
+    if(msg.text.toString().startsWith('/unban') && msg.chat.id == config.reviewer) { try { fs.unlinkSync(`./banned/${msg.text.toString().split(' ')[1]}.txt`) } catch(e) {} };
     if(fs.readdirSync('./banned', { encoding: "utf-8" }).includes(msg.chat.id+'.txt')) return;
     if (msg.text.toString().toLowerCase() == start || msg.text.toString().toLowerCase() == start2) {
-        bot.sendMessage(msg.chat.id, "Hey " + msg.from.first_name +  replybot.mainmessage, {
-                reply_markup: JSON.stringify({
-                    inline_keyboard: [
-                        [
-                            {
-                                text:"Submit art",
-                                callback_data: 'sumbit'
-                            },
-                            {
-                                text: "Contact",
-                                callback_data: 'contact'
-                            }
-                        ],
-                    ],
-                }),
-            }
-        );
+        console.log(msg.chat.id)
+        welcomemsg(msg.chat.id, msg.from.first_name)
     }
 
 });
 
 bot.on("callback_query", callbackQuery => {
     let chatId = callbackQuery.message.chat.id;
-    let callbackData = callbackQuery.data;
-
+    let callbackData = callbackQuery.data.split(" ")[0];
+    let callbackData2 = callbackQuery.data.split(" ")[1];
+ 
     switch (callbackData) {
         case "sumbit":
+
             bot.sendMessage(chatId, replybot.rules, {
                 reply_markup: JSON.stringify({
                     inline_keyboard: [
@@ -73,13 +78,14 @@ bot.on("callback_query", callbackQuery => {
             message(chatId, 1);
             break;
         case "contact":
+            bot.deleteMessage(chatId, callbackQuery.message.message_id);
             bot.sendMessage(chatId, replybot.contact, {
                 reply_markup: JSON.stringify({
                     inline_keyboard: [
                         [
                             {
                                 text:"back",
-                                callback_data: 'back'
+                                callback_data: 'back welcome',
                             }
                         ]
                     ],
@@ -94,6 +100,9 @@ bot.on("callback_query", callbackQuery => {
             break;
         case "back":
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
+            if(callbackData2 == "welcome") {
+                welcomemsg(chatId, callbackQuery.message.chat.first_name)
+            }
             break;
 
         case "username":
@@ -118,33 +127,32 @@ bot.on("callback_query", callbackQuery => {
         
         case "review":
             if(!Database[chatId]) return;
-            if(!Database[chatId].artist) return bot.sendMessage(chatId, replybot.uzupelnijartyste);
+            if(!Database[chatId].artist) return bot.sendMessage(chatId, replybot.provideartist);
             bot.deleteMessage(chatId, Database[chatId].message.message_id);
             copy(chatId);
-            bot.sendMessage(chatId, replybot.wyslano);
+            bot.sendMessage(chatId, replybot.sent);
+            Database[chatId].artist = null
             break;
 
         case "accepted":
             let splitted1 = callbackQuery.message.caption.split('\n');
             let good = [];
-            for(let i = 0; i < splitted1.length-1; i++) {
+            for(let i = 0; i < splitted1.length-2; i++) {
                 good.push(splitted1[i]);
             }
             bot.copyMessage(config.channel, callbackQuery.message.chat.id, callbackQuery.message.message_id, { caption: good.join('\n') }).then(e=>setTimeout(() => bot.deleteMessage(chatId, callbackQuery.message.message_id), 2000));
-            bot.sendMessage(splitted1[splitted1.length-1].replace('dev: ', ''), replybot.acceptwyslanie);
+            bot.sendMessage(Database[chatId].msg.chat.id, replybot.acceptwyslanie);
             bot.sendMessage(chatId, replybot.zaakceptowales)
             break;
         
         case "declined":
-            let splitted2 = callbackQuery.message.caption.split('\n')
-            bot.sendMessage(splitted2[splitted2.length-1].replace('dev: ', ''), replybot.declinedMessage);
+            bot.sendMessage(Database[chatId].msg.chat.id, replybot.declinedMessage);
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
             bot.sendMessage(chatId, replybot.declineReplyart)
             break;
 
         case "ban":
-            let splitted3 = callbackQuery.message.caption.split('\n')
-            fs.writeFileSync(`./banned/${splitted3[splitted3.length-1].replace('dev: ', '')}.txt`, 'zbanowany');
+            fs.writeFileSync(`./banned/${Database[chatId].msg.chat.id}.txt`, 'zbanowany');
             break;
 
         default:
@@ -235,7 +243,7 @@ const verifyart = [
 
 function copy(chatId) {
     bot.copyMessage(config.reviewer, Database[chatId].msg.chat.id, Database[chatId].msg.message_id, {
-        caption: `Sent by: ${Database[chatId].nick ? '@'+Database[chatId].msg.chat.username : 'Anon'}\nArtist: ${Database[chatId].artist}\nSent via bot\ndev: ${Database[chatId].msg.chat.id}\ndev: ${Database[chatId].msg.chat.username}`,
+        caption: `Sent by: ${Database[chatId].nick ? '@'+Database[chatId].msg.chat.username : 'Anon'}\nArtist: ${Database[chatId].artist}\nSent via bot\ndev: @${Database[chatId].msg.chat.username}\ndev: ${Database[chatId].msg.chat.id}`,
         reply_markup: JSON.stringify ({
             inline_keyboard: [
                verifyart
