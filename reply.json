@@ -10,5 +10,6 @@
     "acceptwyslanie": "Your art has been accepted.",
     "zaakceptowales": "[✔] Zaakceptowałeś obrazek",
     "sendArtist": "You can send artist name now.",
-    "mainmessage": ""
+    "mainmessage": "",
+    "botstart": "Bot downloaded cookies"
 }

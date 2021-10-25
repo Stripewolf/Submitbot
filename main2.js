@@ -1,13 +1,13 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
-const log = require('./logi.js');
-const odpowiedzi = require('./reply.json');
+const log = require('./logs.js');
+const replybot = require('./reply.json');
 const config = require('./config.json');
-const superBazaDanych = {};
+const Database = {};
 
 const token = config.token;
 let bot = new TelegramBot(token, {polling: true});
-log.log('bot odpalony o tak o');
+log.log(replybot.botstart);
 
 bot.on("polling_error", console.log);
 
@@ -23,7 +23,7 @@ bot.on('message', (msg) => {
     if(msg.text.toString().startsWith('/unban') && msg.chat.id == 431324710) { try { fs.unlinkSync(`./banned/${msg.text.toString().split(' ')[1]}.txt`) } catch(e) {} };
     if(fs.readdirSync('./banned', { encoding: "utf-8" }).includes(msg.chat.id+'.txt')) return;
     if (msg.text.toString().toLowerCase() == start || msg.text.toString().toLowerCase() == start2) {
-        bot.sendMessage(msg.chat.id, "Hey " + msg.from.first_name +  odpowiedzi.mainmessage, {
+        bot.sendMessage(msg.chat.id, "Hey " + msg.from.first_name +  replybot.mainmessage, {
                 reply_markup: JSON.stringify({
                     inline_keyboard: [
                         [
@@ -50,7 +50,7 @@ bot.on("callback_query", callbackQuery => {
 
     switch (callbackData) {
         case "sumbit":
-            bot.sendMessage(chatId, odpowiedzi.rules, {
+            bot.sendMessage(chatId, replybot.rules, {
                 reply_markup: JSON.stringify({
                     inline_keyboard: [
                         [
@@ -68,12 +68,12 @@ bot.on("callback_query", callbackQuery => {
             });
             break;
         case "accept":
-            bot.sendMessage(chatId, odpowiedzi.acceptrules)
+            bot.sendMessage(chatId, replybot.acceptrules)
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
-            wiadomosc(chatId, 1);
+            message(chatId, 1);
             break;
         case "contact":
-            bot.sendMessage(chatId, odpowiedzi.contact, {
+            bot.sendMessage(chatId, replybot.contact, {
                 reply_markup: JSON.stringify({
                     inline_keyboard: [
                         [
@@ -88,7 +88,7 @@ bot.on("callback_query", callbackQuery => {
             break;
         case "decline":
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
-            bot.sendMessage(chatId, odpowiedzi.declineReply).then(e => {
+            bot.sendMessage(chatId, replybot.declineReply).then(e => {
                 setTimeout(() => { bot.deleteMessage(chatId, e.message_id); }, 5000)
             });
             break;
@@ -97,52 +97,52 @@ bot.on("callback_query", callbackQuery => {
             break;
 
         case "username":
-            if(!superBazaDanych[chatId]) return;
-            //console.log(superBazaDanych[chatId])
-            if(superBazaDanych[chatId].nick == false) {
-                superBazaDanych[chatId].nick = true;
-                bot.deleteMessage(chatId, superBazaDanych[chatId].wiadomosc.message_id);
-                przyciski(superBazaDanych[chatId].msg, true);
+            if(!Database[chatId]) return;
+            //console.log(Database[chatId])
+            if(Database[chatId].nick == false) {
+                Database[chatId].nick = true;
+                bot.deleteMessage(chatId, Database[chatId].message.message_id);
+                buttons(Database[chatId].msg, true);
             } else {
-                superBazaDanych[chatId].nick = false;
-                bot.deleteMessage(chatId, superBazaDanych[chatId].wiadomosc.message_id);
-                przyciski(superBazaDanych[chatId].msg, false);
+                Database[chatId].nick = false;
+                bot.deleteMessage(chatId, Database[chatId].message.message_id);
+                buttons(Database[chatId].msg, false);
             }
             break;
         
         case "artist":
-            if(!superBazaDanych[chatId]) return;
-            bot.sendMessage(chatId, odpowiedzi.sendArtist);
-            wiadomosc(chatId, 2);
+            if(!Database[chatId]) return;
+            bot.sendMessage(chatId, replybot.sendArtist);
+            message(chatId, 2);
             break;
         
         case "review":
-            if(!superBazaDanych[chatId]) return;
-            if(!superBazaDanych[chatId].artist) return bot.sendMessage(chatId, odpowiedzi.uzupelnijartyste);
-            bot.deleteMessage(chatId, superBazaDanych[chatId].wiadomosc.message_id);
-            kopiuj(chatId);
-            bot.sendMessage(chatId, odpowiedzi.wyslano);
+            if(!Database[chatId]) return;
+            if(!Database[chatId].artist) return bot.sendMessage(chatId, replybot.uzupelnijartyste);
+            bot.deleteMessage(chatId, Database[chatId].message.message_id);
+            copy(chatId);
+            bot.sendMessage(chatId, replybot.wyslano);
             break;
 
-        case "AHA1":
+        case "accepted":
             let splitted1 = callbackQuery.message.caption.split('\n');
             let good = [];
             for(let i = 0; i < splitted1.length-1; i++) {
                 good.push(splitted1[i]);
             }
             bot.copyMessage(config.channel, callbackQuery.message.chat.id, callbackQuery.message.message_id, { caption: good.join('\n') }).then(e=>setTimeout(() => bot.deleteMessage(chatId, callbackQuery.message.message_id), 2000));
-            bot.sendMessage(splitted1[splitted1.length-1].replace('dev: ', ''), odpowiedzi.acceptwyslanie);
-            bot.sendMessage(chatId, odpowiedzi.zaakceptowales)
+            bot.sendMessage(splitted1[splitted1.length-1].replace('dev: ', ''), replybot.acceptwyslanie);
+            bot.sendMessage(chatId, replybot.zaakceptowales)
             break;
         
-        case "AHA2":
+        case "declined":
             let splitted2 = callbackQuery.message.caption.split('\n')
-            bot.sendMessage(splitted2[splitted2.length-1].replace('dev: ', ''), odpowiedzi.declinedMessage);
+            bot.sendMessage(splitted2[splitted2.length-1].replace('dev: ', ''), replybot.declinedMessage);
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
-            bot.sendMessage(chatId, odpowiedzi.declineReplyart)
+            bot.sendMessage(chatId, replybot.declineReplyart)
             break;
 
-        case "AHA3":
+        case "ban":
             let splitted3 = callbackQuery.message.caption.split('\n')
             fs.writeFileSync(`./banned/${splitted3[splitted3.length-1].replace('dev: ', '')}.txt`, 'zbanowany');
             break;
@@ -152,43 +152,43 @@ bot.on("callback_query", callbackQuery => {
     }
 });
 
-function wiadomosc(chatid, type) {
-    artysta(chatid, type);
-    function artysta(chatid, type) {
+function message(chatid, type) {
+    artist(chatid, type);
+    function artist(chatid, type) {
         let time = Date.now();
         bot.once('message', msg => {
             if(Date.now() - time > 120000) return;
-            if(msg.chat.id !== chatid) artysta(chatid, type);
+            if(msg.chat.id !== chatid) artist(chatid, type);
             console.log(msg.chat.id, chatid, type);
             if(type == 1) {
                 if(!msg.photo) return bot.sendMessage(chatid, 'This is not an image, aborted');
-                przyciski(msg, true);
+                buttons(msg, true);
             }
             if(type == 2) {
                 if(!msg.text) return;
-                superBazaDanych[chatid].artist = msg.text.toString();
-                bot.deleteMessage(chatid, superBazaDanych[chatid].wiadomosc.message_id).then(m=>{
-                    przyciski(superBazaDanych[chatid].msg, superBazaDanych[chatid].nick);
+                Database[chatid].artist = msg.text.toString();
+                bot.deleteMessage(chatid, Database[chatid].message.message_id).then(m=>{
+                    buttons(Database[chatid].msg, Database[chatid].nick);
                 }).catch(e=>{});
             }
         });
     }
 }
 
-function przyciski(msg, wartosc) {
-    let nick = wartosc;
-    if(superBazaDanych[msg.chat.id] == undefined) superBazaDanych[msg.chat.id] = {nick: true, wiadomosc: null, msg: msg, artist: null};
-    superBazaDanych[msg.chat.id].msg = msg;
+function buttons(msg, value) {
+    let nick = value;
+    if(Database[msg.chat.id] == undefined) Database[msg.chat.id] = {nick: true, message: null, msg: msg, artist: null};
+    Database[msg.chat.id].msg = msg;
     if(nick == true) {
 
     bot.copyMessage(msg.chat.id, msg.chat.id, msg.message_id, {
         reply_markup: JSON.stringify ({
             inline_keyboard: [
-               zNickiem
+               withNickname
             ]
         })
 
-    }).then(m=>superBazaDanych[msg.chat.id].wiadomosc = m);
+    }).then(m=>Database[msg.chat.id].message = m);
         //bot.sendMessage(msg.chat.id, msg.chat.username);
 
     } else {
@@ -196,23 +196,23 @@ function przyciski(msg, wartosc) {
     bot.copyMessage(msg.chat.id, msg.chat.id, msg.message_id, {
         reply_markup: JSON.stringify ({
             inline_keyboard: [
-               bezNicku
+               noNickname
             ]
         })
 
-    }).then(m=>superBazaDanych[msg.chat.id].wiadomosc = m);
+    }).then(m=>Database[msg.chat.id].message = m);
 
     }
 }
 
-const zNickiem = [
+const withNickname = [
     { text: "@: ✔", callback_data: 'username' },
     { text: "Artist", callback_data: 'artist'},
     { text: "Back", callback_data: "back"},
     { text: "Send", callback_data: "review"}
 ]
 
-const bezNicku = [
+const noNickname = [
     { text: "@: ❌", callback_data: 'username' },
     { text: "Artist", callback_data: 'artist'},
     { text: "Back", callback_data: "back"},
@@ -220,22 +220,22 @@ const bezNicku = [
 ]
 
 const verifyart = [
-    { text: "✔", callback_data: 'AHA1' },
-    { text: "❌", callback_data: 'AHA2' },
-    { text: "🔨", callback_data: 'AHA3' }
+    { text: "✔", callback_data: 'accepted' },
+    { text: "❌", callback_data: 'declined' },
+    { text: "🔨", callback_data: 'ban' }
 ]
 
 /*setInterval(() => {
-    console.log(superBazaDanych);
+    console.log(Database);
 }, 2000);*/
 
 /*setInterval(() => {
     console.log(Date.now());
 }, 500);*/
 
-function kopiuj(chatId) {
-    bot.copyMessage(config.reviewer, superBazaDanych[chatId].msg.chat.id, superBazaDanych[chatId].msg.message_id, {
-        caption: `Sent by: ${superBazaDanych[chatId].nick ? '@'+superBazaDanych[chatId].msg.chat.username : 'Anon'}\nArtist: ${superBazaDanych[chatId].artist}\nSent via bot\ndev: ${superBazaDanych[chatId].msg.chat.id}`,
+function copy(chatId) {
+    bot.copyMessage(config.reviewer, Database[chatId].msg.chat.id, Database[chatId].msg.message_id, {
+        caption: `Sent by: ${Database[chatId].nick ? '@'+Database[chatId].msg.chat.username : 'Anon'}\nArtist: ${Database[chatId].artist}\nSent via bot\ndev: ${Database[chatId].msg.chat.id}\ndev: ${Database[chatId].msg.chat.username}`,
         reply_markup: JSON.stringify ({
             inline_keyboard: [
                verifyart
