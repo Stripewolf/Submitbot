@@ -11,5 +11,7 @@
     "zaakceptowales": "[✔] Zaakceptowałeś obrazek",
     "sendArtist": "You can send artist name now.",
     "mainmessage": "Hey {name}",
-    "botstart": "Bot downloaded cookies"
+    "botstart": "Bot downloaded cookies",
+    "yourebanned": "Sorry, but you got banned.\n Reason: {reason}",
+    "banreason": "Send ban reason"
 }

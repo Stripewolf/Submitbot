@@ -4,8 +4,14 @@ const log = require('./logs.js');
 const replybot = require('./reply.json');
 const config = require('./config.json');
 const Database = {};
-
+const dir = './banned'
+if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, {
+        recursive: true
+    });
+}
 const token = config.token;
+
 let bot = new TelegramBot(token, {polling: true});
 log.log(replybot.botstart);
 
@@ -38,8 +44,8 @@ bot.on('message', (msg) => {
     let start = "/help";
     let start2 = "/start";
     if(!msg.text) return;
-    if(msg.text.toString().startsWith('/unban') && msg.chat.id == config.reviewer) { try { fs.unlinkSync(`./banned/${msg.text.toString().split(' ')[1]}.txt`) } catch(e) {} };
-    if(fs.readdirSync('./banned', { encoding: "utf-8" }).includes(msg.chat.id+'.txt')) return;
+    if(msg.text.toString().startsWith('/unban') && msg.chat.id == config.reviewer) { try { fs.unlinkSync(`./banned/${msg.text.toString().split(' ')[1]}.json`) } catch(e) {} };
+    if(fs.readdirSync('./banned', { encoding: "utf-8" }).includes(msg.chat.id+'.json')) return;
     if (msg.text.toString().toLowerCase() == start || msg.text.toString().toLowerCase() == start2) {
         console.log(msg.chat.id)
         welcomemsg(msg.chat.id, msg.from.first_name)
@@ -103,6 +109,7 @@ bot.on("callback_query", callbackQuery => {
             if(callbackData2 == "welcome") {
                 welcomemsg(chatId, callbackQuery.message.chat.first_name)
             }
+            if(callbackData2)
             break;
 
         case "username":
@@ -152,7 +159,9 @@ bot.on("callback_query", callbackQuery => {
             break;
 
         case "ban":
-            fs.writeFileSync(`./banned/${Database[chatId].msg.chat.id}.txt`, 'zbanowany');
+            bot.sendMessage(chatId, replybot.banreason)
+            fs.writeFileSync(`./banned/${Database[chatId].msg.chat.id}.json`, `Username: @${Database[chatId].msg.chat.username}\nID: ${Database[chatId].msg.chat.id}\n Reason: ${Database[chatId].banreason}`);
+            bot.sendMessage(Database[chatId].msg.chat.id, replybot.yourebanned)
             break;
 
         default:
