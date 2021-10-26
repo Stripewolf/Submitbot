@@ -44,8 +44,8 @@ bot.on('message', (msg) => {
     let start = "/help";
     let start2 = "/start";
     if(!msg.text) return;
-    if(msg.text.toString().startsWith('/unban') && msg.chat.id == config.reviewer) { try { fs.unlinkSync(`./banned/${msg.text.toString().split(' ')[1]}.json`) } catch(e) {} };
-    if(fs.readdirSync('./banned', { encoding: "utf-8" }).includes(msg.chat.id+'.json')) return;
+    if(msg.text.toString().startsWith('/unban') && msg.chat.id == 431324710) { try { fs.unlinkSync(`./banned/${msg.text.toString().split(' ')[1]}.txt`) } catch(e) {} };
+    if(fs.readdirSync('./banned', { encoding: "utf-8" }).includes(msg.chat.id+'.txt')) return;
     if (msg.text.toString().toLowerCase() == start || msg.text.toString().toLowerCase() == start2) {
         console.log(msg.chat.id)
         welcomemsg(msg.chat.id, msg.from.first_name)
@@ -56,7 +56,6 @@ bot.on('message', (msg) => {
 bot.on("callback_query", callbackQuery => {
     let chatId = callbackQuery.message.chat.id;
     let callbackData = callbackQuery.data.split(" ")[0];
-    let callbackData2 = callbackQuery.data.split(" ")[1];
  
     switch (callbackData) {
         case "sumbit":
@@ -81,7 +80,7 @@ bot.on("callback_query", callbackQuery => {
         case "accept":
             bot.sendMessage(chatId, replybot.acceptrules)
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
-            message(chatId, 1);
+            messageartist(chatId, 1);
             break;
         case "contact":
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
@@ -106,6 +105,7 @@ bot.on("callback_query", callbackQuery => {
             break;
         case "back":
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
+            let callbackData2 = callbackQuery.data.split(" ")[1];
             if(callbackData2 == "welcome") {
                 welcomemsg(chatId, callbackQuery.message.chat.first_name)
             }
@@ -129,7 +129,7 @@ bot.on("callback_query", callbackQuery => {
         case "artist":
             if(!Database[chatId]) return;
             bot.sendMessage(chatId, replybot.sendArtist);
-            message(chatId, 2);
+            messageartist(chatId, 2);
             break;
         
         case "review":
@@ -147,35 +147,34 @@ bot.on("callback_query", callbackQuery => {
             for(let i = 0; i < splitted1.length-2; i++) {
                 good.push(splitted1[i]);
             }
+            const senderIdAccept = callbackQuery.data.split(" ")[1];
             bot.copyMessage(config.channel, callbackQuery.message.chat.id, callbackQuery.message.message_id, { caption: good.join('\n') }).then(e=>setTimeout(() => bot.deleteMessage(chatId, callbackQuery.message.message_id), 2000));
-            bot.sendMessage(Database[chatId].msg.chat.id, replybot.acceptwyslanie);
+            bot.sendMessage(Number.parseInt(senderIdAccept), replybot.acceptwyslanie);
             bot.sendMessage(chatId, replybot.zaakceptowales)
             break;
         
         case "declined":
-            bot.sendMessage(Database[chatId].msg.chat.id, replybot.declinedMessage);
+            const senderIdDecline = callbackQuery.data.split(" ")[1];
+            bot.sendMessage(Number.parseInt(senderIdDecline), replybot.declinedMessage);
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
             bot.sendMessage(chatId, replybot.declineReplyart)
             break;
 
         case "ban":
-            bot.sendMessage(chatId, replybot.banreason)
-            fs.writeFileSync(`./banned/${Database[chatId].msg.chat.id}.json`, `Username: @${Database[chatId].msg.chat.username}\nID: ${Database[chatId].msg.chat.id}\n Reason: ${Database[chatId].banreason}`);
-            bot.sendMessage(Database[chatId].msg.chat.id, replybot.yourebanned)
+            const senderIdban = callbackQuery.data.split(" ")[1];
+            bot.sendMessage(chatId, replybot.banreason);
+            messageban(chatId, 1,Number.parseInt(senderIdban));
             break;
-
         default:
             break;
     }
 });
 
-function message(chatid, type) {
-    artist(chatid, type);
-    function artist(chatid, type) {
+function messageartist(chatid, type) {
         let time = Date.now();
         bot.once('message', msg => {
             if(Date.now() - time > 120000) return;
-            if(msg.chat.id !== chatid) artist(chatid, type);
+            if(msg.chat.id !== chatid) messageartist(chatid, type);
             console.log(msg.chat.id, chatid, type);
             if(type == 1) {
                 if(!msg.photo) return bot.sendMessage(chatid, 'This is not an image, aborted');
@@ -189,12 +188,26 @@ function message(chatid, type) {
                 }).catch(e=>{});
             }
         });
-    }
+    };
+
+function messageban(chatid, type, banid) {
+        let time = Date.now();
+        bot.once('message', msg => {
+        if(Date.now() - time > 120000) return;
+        if(msg.chat.id !== chatid) messageban(chatid, type, banid);
+            if(type == 1) {
+                if(!msg.text) return;
+                Database[banid].ban = msg.text
+                    fs.writeFileSync(`./banned/${Database[banid].msg.chat.id}.txt`, `Username: @${Database[banid].msg.chat.username}\nID: ${Database[banid].msg.chat.id}\nReason: ${Database[banid].ban}`);
+                    bot.sendMessage(Database[banid].msg.chat.id, replybot.yourebanned.replace("{reason}", msg.text))
+                }
+        }
+    )
 }
 
 function buttons(msg, value) {
     let nick = value;
-    if(Database[msg.chat.id] == undefined) Database[msg.chat.id] = {nick: true, message: null, msg: msg, artist: null};
+    if(Database[msg.chat.id] == undefined) Database[msg.chat.id] = {nick: true, message: null, msg: msg, artist: null, ban: null};
     Database[msg.chat.id].msg = msg;
     if(nick == true) {
 
@@ -236,12 +249,6 @@ const noNickname = [
     { text: "Send", callback_data: "review"}
 ]
 
-const verifyart = [
-    { text: "✔", callback_data: 'accepted' },
-    { text: "❌", callback_data: 'declined' },
-    { text: "🔨", callback_data: 'ban' }
-]
-
 /*setInterval(() => {
     console.log(Database);
 }, 2000);*/
@@ -251,6 +258,17 @@ const verifyart = [
 }, 500);*/
 
 function copy(chatId) {
+
+    let verifyart = [
+        { text: "✔", callback_data: 'accepted {senderId}' },
+        { text: "❌", callback_data: 'declined {senderId}' },
+        { text: "🔨", callback_data: 'ban {senderId}' }
+    ]
+
+    verifyart.forEach(function(element, index){ 
+        verifyart[index].callback_data = element.callback_data.replace("{senderId}", chatId.toString()); 
+    });
+
     bot.copyMessage(config.reviewer, Database[chatId].msg.chat.id, Database[chatId].msg.message_id, {
         caption: `Sent by: ${Database[chatId].nick ? '@'+Database[chatId].msg.chat.username : 'Anon'}\nArtist: ${Database[chatId].artist}\nSent via bot\ndev: @${Database[chatId].msg.chat.username}\ndev: ${Database[chatId].msg.chat.id}`,
         reply_markup: JSON.stringify ({
