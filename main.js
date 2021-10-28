@@ -149,8 +149,8 @@ bot.on("callback_query", callbackQuery => {
             }
             const senderIdAccept = callbackQuery.data.split(" ")[1];
             bot.copyMessage(config.channel, callbackQuery.message.chat.id, callbackQuery.message.message_id, { caption: good.join('\n') }).then(e=>setTimeout(() => bot.deleteMessage(chatId, callbackQuery.message.message_id), 2000));
-            bot.sendMessage(Number.parseInt(senderIdAccept), replybot.acceptwyslanie);
-            bot.sendMessage(chatId, replybot.zaakceptowales)
+            bot.sendMessage(Number.parseInt(senderIdAccept), replybot.sendaccept);
+            bot.sendMessage(chatId, replybot.accepted)
             break;
         
         case "declined":
