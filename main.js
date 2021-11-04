@@ -79,13 +79,16 @@ bot.on("callback_query", callbackQuery => {
                     ],
                 }),
             });
+            bot.answerCallbackQuery(callbackQuery.id);
             break;
         case "accept":
             if(Database[chatId] == undefined) Database[chatId] = {nick: true, message: null, msg: null, artist: null, ban: null};
+            else Database[chatId].msg = null
             bot.sendMessage(chatId, replybot.acceptrules)
-            console.log(Database)
+            //console.log(Database)
             messageartist(chatId, 1, bot, buttons, Database);
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
+            bot.answerCallbackQuery(callbackQuery.id);
             break;
         case "contact":
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
@@ -101,23 +104,26 @@ bot.on("callback_query", callbackQuery => {
                     ],
                 }),
             });
+            bot.answerCallbackQuery(callbackQuery.id);
             break;
         case "decline":
+            bot.answerCallbackQuery(callbackQuery.id);
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
             bot.sendMessage(chatId, replybot.declineReply).then(e => {
                 setTimeout(() => { bot.deleteMessage(chatId, e.message_id); }, 5000)
             });
             break;
         case "back":
+            bot.answerCallbackQuery(callbackQuery.id);
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
             let callbackData2 = callbackQuery.data.split(" ")[1];
             if(callbackData2 == "welcome") {
-                welcomemsg(chatId, callbackQuery.message.chat.first_name)
+                return welcomemsg(chatId, callbackQuery.message.chat.first_name)
             }
-            if(callbackData2)
             break;
 
         case "username":
+            bot.answerCallbackQuery(callbackQuery.id);
             if(!Database[chatId]) return;
             //console.log(Database[chatId])
             //console.log(Database)
@@ -127,12 +133,14 @@ bot.on("callback_query", callbackQuery => {
             break;
         
         case "artist":
+            bot.answerCallbackQuery(callbackQuery.id);
             if(!Database[chatId]) return;
             bot.sendMessage(chatId, replybot.sendArtist);
             messageartist(chatId, 2, bot, buttons, Database);
             break;
         
         case "review":
+            bot.answerCallbackQuery(callbackQuery.id);
             if(!Database[chatId]) return;
             if(!Database[chatId].artist) return bot.sendMessage(chatId, replybot.provideartist);
             bot.deleteMessage(chatId, Database[chatId].message.message_id);
@@ -142,6 +150,7 @@ bot.on("callback_query", callbackQuery => {
             break;
 
         case "accepted":
+            bot.answerCallbackQuery(callbackQuery.id);
             let splitted1 = callbackQuery.message.caption.split('\n');
             let good = [];
             for(let i = 0; i < splitted1.length-2; i++) {
@@ -154,6 +163,7 @@ bot.on("callback_query", callbackQuery => {
             break;
         
         case "declined":
+            bot.answerCallbackQuery(callbackQuery.id);
             const senderIdDecline = callbackQuery.data.split(" ")[1];
             bot.sendMessage(Number.parseInt(senderIdDecline), replybot.declinedMessage);
             bot.deleteMessage(chatId, callbackQuery.message.message_id);
@@ -161,11 +171,13 @@ bot.on("callback_query", callbackQuery => {
             break;
 
         case "ban":
+            bot.answerCallbackQuery(callbackQuery.id);
             const senderIdban = callbackQuery.data.split(" ")[1];
             bot.sendMessage(chatId, replybot.banreason);
             messageban(chatId, 1, senderIdban, bot, Database, fs, replybot);
             break;
         default:
+            bot.answerCallbackQuery(callbackQuery.id);
             break;
     }
 });

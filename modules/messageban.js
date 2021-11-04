@@ -2,7 +2,9 @@ let messageban = (chatid, type, banid, bot, Database, fs, replybot) => {
     let time = Date.now();
     bot.once('message', msg => {
     if(Date.now() - time > 120000) return;
-    if(msg.chat.id !== chatid) messageban(chatid, type, banid);
+    if(msg.chat.id !== chatid) {
+        messageban(chatid, type, banid, bot, Database, fs, replybot); return 
+    }
         if(type == 1) {
             if(!msg.text) return;
             Database[banid].ban = msg.text

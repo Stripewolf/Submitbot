@@ -3,7 +3,9 @@ let messageartist = (chatid, type, bot, buttons, Database) => {
     let time = Date.now();
     bot.once('message', msg => {
         if(Date.now() - time > 120000) return;
-        if(msg.chat.id !== chatid) messageartist(chatid, type);
+        if(msg.chat.id !== chatid) {
+             messageartist(chatid, type, bot, buttons, Database); return
+        }
         console.log(msg.chat.id, chatid, type);
         if(type == 1) {
             Database[chatid].msg = msg

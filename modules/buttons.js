@@ -15,26 +15,26 @@ let buttons = (Database, msg, chatId, bot) => {
     //console.log(Database)
     if(Database[chatId].nick == true) {
 
-    bot.copyMessage(chatId, chatId, msg.message_id, {
-        reply_markup: JSON.stringify ({
-            inline_keyboard: [
-               withNickname
-            ]
-        })
+        bot.copyMessage(chatId, chatId, msg.message_id, {
+            reply_markup: JSON.stringify ({
+                inline_keyboard: [
+                withNickname
+                ]
+            })
 
     }).then(m=>Database[chatId].message = m);
         //bot.sendMessage(chatId, msg.chat.username);
 
     } else {
     
-    bot.copyMessage(chatId, chatId, msg.message_id, {
-        reply_markup: JSON.stringify ({
-            inline_keyboard: [
-               noNickname
-            ]
-        })
+        bot.copyMessage(chatId, chatId, msg.message_id, {
+            reply_markup: JSON.stringify ({
+                inline_keyboard: [
+                noNickname
+                ]
+            })
 
-    }).then(m=>Database[chatId].message = m);
+        }).then(m=>Database[chatId].message = m);
 
     }
 }
